@@ -3,21 +3,16 @@ document.addEventListener('DOMContentLoaded', function () {
 	const ctx = canvas.getContext('2d');
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
-	const gradient = ctx.createLinearGradient(
-		0,
-		0,
-		canvas.width,
-		canvas.height
-	);
+	const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
 	gradient.addColorStop(0, 'white');
-	gradient.addColorStop(0.5, 'gold');
-	gradient.addColorStop(1, 'orangered');
+	gradient.addColorStop(1, 'gold');
 	ctx.fillStyle = gradient;
 	ctx.strokeStyle = gradient;
 
 	class Particle {
-		constructor(effect) {
+		constructor(effect, index) {
 			this.effect = effect;
+			this.index = index;
 			this.radius = Math.floor(Math.random() * 10 + 1);
 			this.x =
 				this.radius +
@@ -29,9 +24,18 @@ document.addEventListener('DOMContentLoaded', function () {
 			this.vy = Math.random() * 1 - 0.5;
 			this.pushX = 0;
 			this.pushY = 0;
-			this.friction = 0.75;
+			this.friction = 0.8;
 		}
 		draw(context) {
+			if (this.index % 4 === 0) {
+				context.save();
+				context.globalAlpha = 0.6;
+				context.beginPath();
+				context.moveTo(this.x, this.y);
+				context.lineTo(this.effect.mouse.x, this.effect.mouse.y);
+				context.stroke();
+				context.restore();
+			}
 			context.beginPath();
 			context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
 			context.fill();
@@ -84,18 +88,20 @@ document.addEventListener('DOMContentLoaded', function () {
 			this.numberOfParticles = 500;
 			this.createParticles();
 			this.mouse = {
-				x: 0,
-				y: 0,
+				x: this.width * 0.5,
+				y: this.height * 0.5,
 				pressed: false,
-				radius: 150,
+				radius: 120,
 			};
 
 			window.addEventListener('resize', (e) => {
 				this.resize(e.target.innerWidth, e.target.innerHeight, context);
 			});
 			window.addEventListener('mousemove', (e) => {
-				if (this.mouse.pressed) this.mouse.x = e.x;
-				this.mouse.y = e.y;
+				if (this.mouse.pressed) {
+					this.mouse.x = e.x;
+					this.mouse.y = e.y;
+				}
 			});
 			window.addEventListener('mousedown', (e) => {
 				this.mouse.pressed = true;
@@ -108,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 		createParticles() {
 			for (let i = 0; i < this.numberOfParticles; i++) {
-				this.particles.push(new Particle(this));
+				this.particles.push(new Particle(this, i));
 			}
 		}
 		handleParticles(context) {
